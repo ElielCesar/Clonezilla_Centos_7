@@ -88,6 +88,7 @@ echo [*]::[Desabilita firewalld]: Aguarde!;
 	yum install perl-Digest-SHA1.x86_64 -y && sleep 2 && echo 
 
 #Iniciando as configurações do clonezilla server
+#teste
 	chmod +x /usr/sbin/drblpush
 	chmod +x /usr/sbin/drblsrv
 	/usr/sbin/drblsrv -i
