@@ -1,0 +1,101 @@
+#!/bin/bash
+
+# setup.sh Author : Eliel César
+# Instalar pacotes e dependencias necessarias.
+# --------------------------------------------------------
+
+#Função para escolha do usuario
+
+Principal() { 
+ifconfig virbr0 down
+echo -e "Escolha o que deseja fazer na lista abaixo:"
+echo -e "-------------------------------------------\n"
+echo -e "Opções:\n"
+echo "1 - Salvar a Imagem no servidor"
+echo "2 - Restaurar uma Imagem nos clientes"
+echo "3 - Parar o Servidor"
+echo "4 - Sair sem alterar nada."
+echo 
+echo -n "Qual a opção desejada? "
+read -r opcao
+
+case $opcao in
+1) Salvar ;;
+2) Restaurar ;;
+3) Parar ;;
+4) exit ;;
+*) "Opção desconhecida." ; echo ; Principal ;;
+esac
+
+}
+
+Salvar() {
+
+#Limpando as regras do Iptables
+	ipt="/usr/sbin/iptables"
+	$ipt -F && $ipt -t filter -F 
+	$ipt -t filter -X && $ipt -t nat -F
+	$ipt -t nat -X
+	
+#Regra para encaminhamento de trafego no kernel
+	echo 1 > /proc/sys/net/ipv4/ip_forward
+
+#Opção para o usuario
+echo  
+echo -e "Escolha a opção:"
+echo -e "1 - Usar a ultima configuração\n"
+echo -e "2 - Criar novas configurações\n"
+echo -n "Qual opção desejada? "
+read -r conf
+ 
+#Verifica se já existia uma configuração antiga.
+
+test -e /etc/drbl/drblpush.conf
+ 
+case $conf in
+1) if [ $? = 0 ]
+         then drblpush -c /etc/drbl/drblpush.conf
+   else
+         echo -e "Não existe configurações salvas anteriormente\n"
+	 exit 1 
+   fi ;;
+ 
+2) drblpush -i ;;
+esac
+sleep 5
+
+#Regra para iniciar o clocnezilla para salvar imagem, vc pode fazer a sua com o comando dcs.
+drbl-ocs -b -q2 -j2 -p reboot -z1p -i 1000000 -l pt_BR.UTF-8 startdisk save
+#drbl-ocs -b -q2 -j2 -scs -p reboot -z1p -i 1000000 -l pt_BR.UTF-8 startdisk save
+#sleep 2
+
+#AVISO
+echo -e "\n Agora você já pode salvar suas imagens.!!!...[ OK ] \n"
+
+}
+
+Restaurar() {
+
+#Esta opção permite restaurar ou salvar as imagens escolhendo no cliente.
+drbl-ocs -b -l pt_BR.UTF-8 -y1 -p poweroff select_in_client
+
+#Esta opção pode ser alterada a sua escolha fazendo com que os clientes sempre busquem a imagem que vc escolher.
+#Neste caso eu escolhi que sempre restaurem com o windows 2012 nas imagens salvas, use o comando dcs para configurar isso.
+#drbl-ocs -b -g auto -e1 auto -e2 -r -x -j2 -sc0 -p poweroff --clients-to-wait 4 --max-time-to-wait 300 -l pt_BR.UTF-8 startdisk multicast_restore windows-server-2012 sda
+
+#AVISO
+echo -e "\nAgora você já pode RESTAURAR suas imagens!!!...[OK]\n"
+
+}
+
+#========================================================================================#
+
+Parar() {
+
+echo -e "\n Parando o serviço, em seguida clique apenas em [ OK ] \n"
+	sleep 5
+	/usr/sbin/dcs clonezilla-stop
+
+}
+
+Principal
