@@ -81,7 +81,7 @@ echo [*]::[Desabilita firewalld]: Aguarde!;
 
 #Faz a instalação do pacote no sistema 
 	echo [*]::[Instalando o pacote no sitema]: Aguarde!;
-	yum install ./drbl-2.25.10-drbl1.noarch.rpm -y && sleep 2 && echo
+	yum install drbl.noarch -y && sleep 2 && echo
 
 #Instala o modulo perl 
 	echo [*]::[Instalando o modulo perl no sistema]: Aguarde!
